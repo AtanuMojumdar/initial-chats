@@ -1045,8 +1045,10 @@ body {
 
 .wa-link-preview-image {
   width: 100%;
-  max-height: 160px;
-  object-fit: cover;
+  height: auto;
+  max-height: 250px;
+  object-fit: contain;
+  background-color: rgba(0, 0, 0, 0.2);
   display: block;
 }
 
