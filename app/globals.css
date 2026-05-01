@@ -1020,22 +1020,34 @@ body {
 .wa-link-preview {
   display: flex;
   flex-direction: column;
-  background-color: var(--wa-panel-bg);
-  border-radius: 8px;
-  margin-bottom: 4px;
+  background-color: rgba(0, 0, 0, 0.15);
+  margin: -6px -7px 4px -9px;
+  border-radius: 7.5px 7.5px 0 0;
   overflow: hidden;
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 1px 1px rgba(11,20,26,.1);
-  border: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wa-msg-row.out .wa-bubble.has-tail > .wa-link-preview:first-child {
+  border-top-right-radius: 0;
+}
+
+.wa-msg-row.in .wa-bubble.has-tail > .wa-link-preview:first-child {
+  border-top-left-radius: 0;
+}
+
+.wa-bubble-sender ~ .wa-link-preview {
+  margin-top: 4px;
+  border-radius: 4px 4px 0 0;
 }
 
 .wa-link-preview-image {
   width: 100%;
-  height: 140px;
+  max-height: 160px;
   object-fit: cover;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: block;
 }
 
 .wa-link-preview-content {
@@ -1044,8 +1056,9 @@ body {
 
 .wa-link-preview-title {
   font-weight: 500;
-  font-size: 14px;
-  margin-bottom: 4px;
+  font-size: 14.5px;
+  line-height: 20px;
+  margin-bottom: 2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1055,10 +1068,11 @@ body {
 }
 
 .wa-link-preview-desc {
-  font-size: 13px;
+  font-size: 13.5px;
+  line-height: 18px;
   color: var(--wa-text-secondary);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1066,7 +1080,7 @@ body {
 }
 
 .wa-link-preview-domain {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--wa-text-secondary);
   text-transform: lowercase;
 }
