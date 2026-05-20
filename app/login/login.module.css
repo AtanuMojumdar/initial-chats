@@ -226,6 +226,20 @@
   gap: 6px;
 }
 
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  .footer {
+    justify-content: flex-start;
+    font-size: 11px;
+    gap: 4px;
+    padding-left: 8px;
+  }
+  .footer svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 /* Success Transition Styles */
 .successCard {
   width: 90%;
