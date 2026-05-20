@@ -46,6 +46,12 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+svg {
+  shape-rendering: geometricPrecision;
 }
 
 .wa-container {
@@ -285,7 +291,39 @@ body {
   box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
   max-width: 80%;
   line-height: 20px;
-  text-transform: uppercase;
+}
+
+/* Encryption Notice at top of chat */
+.wa-encryption-notice {
+  align-self: center;
+  background-color: #182229;
+  color: #ffd279;
+  font-size: 12.5px;
+  padding: 6px 14px;
+  border-radius: 7.5px;
+  margin: 4px 0 12px 0;
+  text-align: center;
+  box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+  max-width: 600px;
+  line-height: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  justify-content: center;
+}
+
+.wa-encryption-notice svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.wa-encryption-notice a {
+  color: #53bdeb;
+  text-decoration: none;
+}
+
+.wa-encryption-notice a:hover {
+  text-decoration: underline;
 }
 
 /* Message Bubble */
@@ -950,6 +988,12 @@ body {
     display: flex;
     margin-right: 5px;
   }
+
+  .wa-encryption-notice {
+    max-width: 95%;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 }
 
 /* Lightbox */
@@ -1045,10 +1089,8 @@ body {
 
 .wa-link-preview-image {
   width: 100%;
-  height: auto;
-  max-height: 250px;
-  object-fit: contain;
-  background-color: rgba(0, 0, 0, 0.2);
+  height: 180px;
+  object-fit: cover;
   display: block;
 }
 
@@ -1058,8 +1100,8 @@ body {
 
 .wa-link-preview-title {
   font-weight: 500;
-  font-size: 14.5px;
-  line-height: 20px;
+  font-size: 13.3px;
+  line-height: 19px;
   margin-bottom: 2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1070,19 +1112,66 @@ body {
 }
 
 .wa-link-preview-desc {
-  font-size: 13.5px;
-  line-height: 18px;
+  font-size: 12.8px;
+  line-height: 17px;
   color: var(--wa-text-secondary);
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .wa-link-preview-domain {
-  font-size: 12.5px;
+  font-size: 11.5px;
+  color: rgba(134, 150, 160, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+/* WhatsApp Dropdown Menu */
+.wa-dropdown-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background-color: #233138; /* WhatsApp dark menu background */
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 255, 255, 0.1);
+  padding: 8px 0;
+  width: 130px;
+  z-index: 1000;
+  animation: dropdownFade 0.15s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wa-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  color: var(--wa-text-primary);
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-align: left;
+}
+
+.wa-dropdown-item:hover {
+  background-color: #182229; /* WhatsApp hover color */
+}
+
+.wa-dropdown-item svg {
   color: var(--wa-text-secondary);
-  text-transform: lowercase;
 }

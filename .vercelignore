@@ -1,0 +1,12 @@
+# .vercelignore
+# Directories/files that should NOT be uploaded during Vercel deployment
+# Vercel already ignores .git, node_modules, and .next, but we list them explicitly for clarity
+.git
+node_modules
+.next
+# Local development helpers that are not needed in production
+README.md
+CLAUDE.md
+AGENTS.md
+# Large data files that are required at runtime – keep them
+# (do NOT add driveMap.json here)

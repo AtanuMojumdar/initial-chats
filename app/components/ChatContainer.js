@@ -1,11 +1,25 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
+import { Search, ArrowLeft, MoreVertical, Plus, Smile, Mic, ChevronDown, ChevronUp, Lock, LogOut } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 import Lightbox from './Lightbox';
 
 export default function ChatContainer({ messages }) {
-  const endOfMessagesRef = useRef(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   // Extract unique senders
   const senders = Array.from(new Set(messages.filter(m => !m.isSystem && m.sender).map(m => m.sender)));
@@ -24,6 +38,17 @@ export default function ChatContainer({ messages }) {
   
   // Lightbox state
   const [selectedMedia, setSelectedMedia] = useState(null);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth', { method: 'DELETE' });
+      if (res.ok) {
+        window.location.href = '/login';
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   // Implement Windowing / Lazy Loading
   const defaultCount = 150;
@@ -77,12 +102,12 @@ export default function ChatContainer({ messages }) {
   const [showScrollTopBtn, setShowScrollTopBtn] = useState(false);
   const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
 
-  // Scroll to bottom only on the first load
+  // Initial scroll to bottom on load
   useEffect(() => {
-    if (chatAreaRef.current) {
-       chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
-    }
-  }, []); // Run only once
+     if (chatAreaRef.current) {
+        chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+     }
+  }, []);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -129,13 +154,16 @@ export default function ChatContainer({ messages }) {
   };
 
   // Maintain scroll position after prepending new elements without paint flashes
-  useLayoutEffect(() => {
-    if (scrollState.preservingTop && chatAreaRef.current) {
-       const heightAdded = chatAreaRef.current.scrollHeight - scrollState.scrollHeight;
-       chatAreaRef.current.scrollTop = scrollState.scrollTop + heightAdded;
-       setScrollState(s => ({ ...s, preservingTop: false }));
-    }
-  }, [displayedMessages, scrollState.preservingTop]);
+  useEffect(() => {
+      if (scrollState.preservingTop && chatAreaRef.current) {
+         const heightAdded = chatAreaRef.current.scrollHeight - scrollState.scrollHeight;
+         chatAreaRef.current.scrollTop = scrollState.scrollTop + heightAdded;
+         // Defer state update to avoid synchronous setState inside effect
+         setTimeout(() => {
+            setScrollState(s => ({ ...s, preservingTop: false }));
+         }, 0);
+      }
+   }, [displayedMessages, scrollState.preservingTop, scrollState.scrollHeight, scrollState.scrollTop]);
 
   const handleLoadPrevious = useCallback(() => {
      if (chatAreaRef.current) {
@@ -245,40 +273,62 @@ export default function ChatContainer({ messages }) {
       
       {/* Sidebar Mockup */}
       <div className={`wa-sidebar ${!isSidebarOpen ? 'mobile-hidden' : ''}`}>
-        <div className="wa-header" style={{ justifyContent: 'space-between' }}>
+        <div className="wa-header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <div className="wa-avatar" onClick={() => handleAvatarClick(pov)}>
                {renderAvatarContent(pov)}
             </div>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <span style={{ fontSize: '13px', color: 'var(--wa-text-secondary)', fontWeight: 500 }}>POV:</span>
-             <select 
-               value={pov} 
-               onChange={e => setPov(e.target.value)}
+          <div ref={menuRef} style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--wa-text-secondary)', fontWeight: 500 }}>POV:</span>
+                <select 
+                  value={pov} 
+                  onChange={e => setPov(e.target.value)}
+                  style={{ 
+                    background: 'var(--wa-input-bg)', 
+                    color: 'var(--wa-text-primary)', 
+                    border: 'none', 
+                    borderRadius: '6px',
+                    padding: '6px 8px',
+                    fontSize: '13px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    maxWidth: '90px'
+                  }}
+                >
+                  {senders.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+             </div>
+             
+             <div 
+               className={`wa-icon ${isMenuOpen ? 'active' : ''}`}
+               onClick={() => setIsMenuOpen(!isMenuOpen)} 
+               title="Menu" 
                style={{ 
-                 background: 'var(--wa-input-bg)', 
-                 color: 'var(--wa-text-primary)', 
-                 border: 'none', 
-                 borderRadius: '6px',
-                 padding: '6px 8px',
-                 fontSize: '13px',
-                 outline: 'none',
-                 cursor: 'pointer',
-                 maxWidth: '120px'
+                 cursor: 'pointer', 
+                 backgroundColor: isMenuOpen ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                 borderRadius: '50%'
                }}
              >
-               {senders.map(s => <option key={s} value={s}>{s}</option>)}
-             </select>
+               <MoreVertical size={20} color="currentColor" />
+             </div>
+
+             {isMenuOpen && (
+               <div className="wa-dropdown-menu">
+                 <div className="wa-dropdown-item" onClick={handleLogout}>
+                   <LogOut size={16} />
+                   <span>Log out</span>
+                 </div>
+               </div>
+             )}
           </div>
         </div>
         
         <div className="wa-search-bar">
           <div className="wa-search-input-container">
-            <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" fill="var(--wa-text-secondary)" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-              <path d="M15.009,13.805h-0.636l-0.22-0.219c0.781-0.911,1.256-2.092,1.256-3.386 c0-2.876-2.332-5.207-5.207-5.207c-2.876,0-5.208,2.331-5.208,5.207s2.331,5.208,5.208,5.208c1.293,0,2.474-0.474,3.385-1.255l0.221,0.22v0.635l4.004,3.999l1.194-1.195L15.009,13.805z M10.201,13.805c-1.991,0-3.605-1.614-3.605-3.605 s1.614-3.605,3.605-3.605c1.991,0,3.604,1.614,3.604,3.605S12.192,13.805,10.201,13.805z"></path>
-            </svg>
+            <Search size={20} color="var(--wa-text-secondary)" />
             <input 
                type="text" 
                className="wa-search-input" 
@@ -314,7 +364,7 @@ export default function ChatContainer({ messages }) {
         {/* WhatsApp Header */}
         <div className="wa-header" style={{ position: 'relative', zIndex: 2 }}>
           <div className="mobile-back-btn wa-icon" onClick={() => setIsSidebarOpen(true)}>
-             <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"></path></svg>
+             <ArrowLeft size={24} color="currentColor" />
           </div>
           <div className="wa-avatar" onClick={() => handleAvatarClick(senders.find(s => s !== pov))}>
              {renderAvatarContent(senders.find(s => s !== pov))}
@@ -323,18 +373,7 @@ export default function ChatContainer({ messages }) {
             <span className="wa-header-name">{senders.find(s => s !== pov) || 'Contact'}</span>
             <span className="wa-header-status">tap here for contact info</span>
           </div>
-          <div className="wa-header-actions" style={{ display: 'flex', gap: '5px', paddingRight: '10px' }}>
-            <div className="wa-icon">
-              <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-                 <path d="M15.009,13.805h-0.636l-0.22-0.219c0.781-0.911,1.256-2.092,1.256-3.386 c0-2.876-2.332-5.207-5.207-5.207c-2.876,0-5.208,2.331-5.208,5.207s2.331,5.208,5.208,5.208c1.293,0,2.474-0.474,3.385-1.255l0.221,0.22v0.635l4.004,3.999l1.194-1.195L15.009,13.805z M10.201,13.805c-1.991,0-3.605-1.614-3.605-3.605 s1.614-3.605,3.605-3.605c1.991,0,3.604,1.614,3.604,3.605S12.192,13.805,10.201,13.805z"></path>
-              </svg>
-            </div>
-            <div className="wa-icon">
-              <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-                 <path d="M12,7c1.104,0,2-0.896,2-2c0-1.105-0.895-2-2-2c-1.104,0-2,0.894-2,2C10,6.105,10.895,7,12,7z M12,9c-1.104,0-2,0.894-2,2 c0,1.104,0.895,2,2,2c1.104,0,2-0.896,2-2C13.999,9.895,13.104,9,12,9z M12,15c-1.104,0-2,0.894-2,2c0,1.104,0.895,2,2,2 c1.104,0,2-0.896,2-2C13.999,15.894,13.104,15,12,15z"></path>
-              </svg>
-            </div>
-          </div>
+          
         </div>
 
         {/* Scrollable Chat Area */}
@@ -350,21 +389,12 @@ export default function ChatContainer({ messages }) {
            {!searchQuery && visibleRange.start > 0 && (
               <div ref={topSentinelRef} style={{ height: '20px', width: '100%', opacity: 0 }}></div>
            )}
-           {!searchQuery && visibleRange.start === 0 && (
-              <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                <div className="wa-msg-sys" style={{ display: 'inline-block' }}>
-                   Beginning of chat history
-                </div>
+           
+            {!searchQuery && visibleRange.start === 0 && (
+              <div className="wa-encryption-notice">
+                 <Lock size={12} color="currentColor" style={{ flexShrink: 0, marginTop: '4px' }} />
+                 <span>Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them. <a href="https://faq.whatsapp.com/general/security-and-privacy/end-to-end-encryption" target="_blank" rel="noreferrer">Click to learn more</a></span>
               </div>
-           )}
-
-           {!searchQuery && visibleRange.start === 0 && (
-             <div className="wa-msg-sys" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#182229', color: '#ffd279', gap: '6px', maxWidth: '85%' }}>
-                <svg viewBox="0 0 10 12" width="10" height="12" fill="currentColor">
-                  <path d="M5 0c1.8 0 3 1.2 3 3v1.5h1c.6 0 1 .4 1 1v5c0 .6-.4 1-1 1H1c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h1V3c0-1.8 1.2-3 3-3zm0 1.5c-1 0-1.5.8-1.5 1.5v1.5h3V3c0-.7-.5-1.5-1.5-1.5z"></path>
-                </svg>
-                <span>Messages and calls are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.</span>
-             </div>
            )}
            
            {groupedMessages.map((msg, idx) => {
@@ -388,7 +418,7 @@ export default function ChatContainer({ messages }) {
                       style={{ 
                          display: 'flex', flexDirection: 'column', width: '100%', 
                          cursor: searchQuery ? 'pointer' : 'default', 
-                         padding: '0 0', borderRadius: '4px',
+                         borderRadius: '4px',
                          marginTop: showTail ? '12px' : '2px',
                          marginBottom: '2px'
                       }}
@@ -414,34 +444,24 @@ export default function ChatContainer({ messages }) {
         {/* Floating Scroll Buttons */}
         {showScrollTopBtn && !searchQuery && (
           <div className="wa-floating-btn top" onClick={jumpToTop} title="Go to first message">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-               <path fill="currentColor" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"></path>
-            </svg>
+            <ChevronUp size={24} color="currentColor" />
           </div>
         )}
         
         {showScrollBottomBtn && !searchQuery && (
           <div className="wa-floating-btn bottom" onClick={jumpToBottom} title="Go to last message">
-             <svg viewBox="0 0 24 24" width="24" height="24">
-                <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"></path>
-             </svg>
+             <ChevronDown size={24} color="currentColor" />
           </div>
         )}
 
         {/* Footer / Message Input */}
         <div className="wa-footer" style={{ position: 'relative', zIndex: 2 }}>
            <div className="wa-icon" style={{ padding: '8px', margin: '0 4px' }}>
-             <svg viewBox="0 0 24 24" width="24" height="24" preserveAspectRatio="xMidYMid meet" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-               {/* Authentic WhatsApp Plus / Attachment Icon */}
-               <path fill="currentColor" d="M11 11V4h2v7h7v2h-7v7h-2v-7H4v-2h7z"></path>
-             </svg>
+             <Plus size={24} color="currentColor" strokeWidth={2.5} />
            </div>
            
            <div className="wa-icon" style={{ padding: '8px', margin: '0 4px 0 0' }}>
-             <svg viewBox="0 0 24 24" width="24" height="24" preserveAspectRatio="xMidYMid meet" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-               {/* Authentic WhatsApp Smiley Icon */}
-               <path fill="currentColor" d="M12,2C6.477,2,2,6.477,2,12s4.477,10,10,10s10-4.477,10-10S17.523,2,12,2z M12,20.5c-4.694,0-8.5-3.806-8.5-8.5 S7.306,3.5,12,3.5s8.5,3.806,8.5,8.5S16.694,20.5,12,20.5z M16.439,10.641c0-0.795-0.644-1.439-1.439-1.439 c-0.795,0-1.439,0.644-1.439,1.439s0.644,1.439,1.439,1.439C15.795,12.08,16.439,11.436,16.439,10.641z M9.001,10.641 c0-0.795-0.644-1.439-1.439-1.439C6.766,9.202,6.122,9.846,6.122,10.641s0.644,1.439,1.439,1.439 C8.357,12.08,9.001,11.436,9.001,10.641z M12,16.602c2.44,0,4.551-1.396,5.551-3.468H6.449C7.449,15.205,9.56,16.602,12,16.602z"></path>
-             </svg>
+             <Smile size={24} color="currentColor" />
            </div>
            
            <div className="wa-input-container">
@@ -449,9 +469,7 @@ export default function ChatContainer({ messages }) {
            </div>
            
            <div className="wa-icon" style={{ padding: '8px 8px 8px 16px' }}>
-             <svg viewBox="0 0 24 24" width="24" height="24" preserveAspectRatio="xMidYMid meet" version="1.1" x="0px" y="0px" enableBackground="new 0 0 24 24" xmlSpace="preserve">
-                <path fill="currentColor" d="M11.999,14.942c2.001,0,3.531-1.53,3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531 S8.469,2.349,8.469,4.35v7.061C8.469,13.412,9.998,14.942,11.999,14.942z M18.237,11.412c0,3.531-2.942,6.002-6.237,6.002 s-6.237-2.471-6.237-6.002H3.761c0,4.001,3.178,7.297,7.061,7.885v3.884h2.354v-3.884c3.884-0.588,7.061-3.884,7.061-7.885 H18.237z"></path>
-             </svg>
+             <Mic size={24} color="currentColor" />
            </div>
         </div>
        </div>

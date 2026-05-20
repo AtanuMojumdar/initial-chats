@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Mic, Play, Pause, Clock, Ban, CheckCheck, FileText, Video, ImageOff } from 'lucide-react';
 
 const AudioPlayer = ({ src, sender, fileName }) => {
   const audioRef = useRef(null);
@@ -10,12 +11,15 @@ const AudioPlayer = ({ src, sender, fileName }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const blobUrlRef = useRef(null);
+
   React.useEffect(() => {
     setIsLoading(true);
     fetch(src)
       .then(r => r.blob())
       .then(blob => {
         const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
         setBlobUrl(url);
         setIsLoading(false);
       })
@@ -26,9 +30,8 @@ const AudioPlayer = ({ src, sender, fileName }) => {
       
     // Cleanup blob url to prevent memory leak
     return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
   const togglePlay = async () => {
@@ -88,17 +91,15 @@ const AudioPlayer = ({ src, sender, fileName }) => {
              )}
           </div>
           <div className="wa-audio-mic-icon">
-             <svg viewBox="0 0 24 24" width="12" height="12" fill="#fff">
-                <path d="M11.999 14.942c2.001 0 3.531-1.53 3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531S8.469 2.349 8.469 4.35v7.061C8.469 13.412 9.998 14.942 11.999 14.942z M18.237 11.412c0 3.531-2.942 6.002-6.237 6.002s-6.237-2.471-6.237-6.002H3.761c0 4.001 3.178 7.297 7.061 7.885v3.884h2.354v-3.884c3.884-.588 7.061-3.884 7.061-7.885H18.237z" />
-             </svg>
+             <Mic size={12} color="#fff" />
           </div>
       </div>
       
       <div onClick={togglePlay} className="wa-audio-play-btn">
         {isPlaying ? (
-          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M9 16h2V8H9v8zm4-8v8h2V8h-2z"></path></svg>
+          <Pause size={34} color="currentColor" fill="currentColor" />
         ) : (
-          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          <Play size={34} color="currentColor" fill="currentColor" />
         )}
       </div>
       
@@ -310,13 +311,11 @@ export default function MessageBubble({ msg, pov, showTail, onImageClick, isGrou
              <video src={mediaUrl} style={{ maxWidth: '100%', display: 'block' }} preload="metadata"></video>
              <div className="wa-video-overlay">
                 <div className="wa-video-play-btn">
-                  <svg viewBox="0 0 24 24" width="30" height="30" fill="#fff"><path d="M8 5v14l11-7z"></path></svg>
+                  <Play size={30} color="#fff" fill="#fff" />
                 </div>
              </div>
              <div className="wa-video-duration">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff" style={{marginRight: '4px'}}>
-                  <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-                </svg>
+                <Video size={14} color="#fff" fill="#fff" style={{marginRight: '4px'}} />
                 Video
              </div>
           </div>
@@ -332,9 +331,7 @@ export default function MessageBubble({ msg, pov, showTail, onImageClick, isGrou
       return (
         <a href={mediaUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="wa-bubble-doc">
-            <svg viewBox="0 0 24 24" className="wa-doc-icon">
-              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
-            </svg>
+            <FileText size={32} color="var(--wa-text-secondary)" className="wa-doc-icon" />
             <div className="wa-doc-info">
               <span className="wa-doc-name">{msg.file}</span>
               <span className="wa-doc-size">Document</span>
@@ -363,35 +360,27 @@ export default function MessageBubble({ msg, pov, showTail, onImageClick, isGrou
         {msg.text ? (
           <div className="wa-bubble-text" style={(msg.isDeleted || msg.text.includes('Waiting for this message') || msg.text.toLowerCase() === 'media omitted') ? { color: 'var(--wa-text-secondary)', fontStyle: 'italic' } : {}}>
             {msg.text.includes('Waiting for this message') ? (
-               <div className="wa-msg-italic-box" style={{ padding: 0 }}>
-                 <svg viewBox="0 0 24 24" width="16" height="16">
-                   <path d="M12,2C6.477,2,2,6.477,2,12s4.477,10,10,10s10-4.477,10-10S17.523,2,12,2z M13.882,15.297l-2.617-2.617 C11.089,12.505,11,12.266,11,12.015V7.001c0-0.553,0.448-1,1-1s1,0.447,1,1v4.601l2.304,2.304c0.39,0.391,0.39,1.024,0,1.414l0,0 C14.913,15.695,14.281,15.695,13.882,15.297z"></path>
-                 </svg>
-                 <span>Waiting for this message. This may take a while.<a href="#">Learn more</a></span>
+               <div style={{ display: 'flex', alignItems: 'center' }}>
+                 <Clock size={16} color="currentColor" style={{ marginRight: '6px', flexShrink: 0 }} />
+                 <span>Waiting for this message. This may take a while. <a href="#" style={{ color: '#53bdeb', textDecoration: 'none' }}>Learn more</a></span>
                </div>
             ) : msg.text.toLowerCase() === 'media omitted' ? (
-               <div className="wa-msg-italic-box" style={{ padding: 0 }}>
-                 <svg viewBox="0 0 24 24" width="18" height="18" style={{ marginTop: '2px' }}>
-                   <path d="M12.003,3C6.48,3,2,7.48,2,13.003C2,18.525,6.48,23,12.003,23S22.005,18.525,22.005,13.003 C22.005,7.48,17.525,3,12.003,3z M18.368,17.662l-1.414,1.414l-4.95-4.95l-4.95,4.95l-1.414-1.414l4.95-4.95l-4.95-4.95l1.414-1.414 l4.95,4.95l4.95-4.95l1.414,1.414l-4.95,4.95L18.368,17.662z" />
-                 </svg>
-                 <span style={{ marginTop: '2px' }}>Media omitted</span>
+               <div style={{ display: 'flex', alignItems: 'center' }}>
+                 <ImageOff size={16} color="currentColor" style={{ marginRight: '6px', flexShrink: 0 }} />
+                 <span>Media omitted</span>
                </div>
             ) : msg.isDeleted ? (
                <div style={{ display: 'flex', alignItems: 'center' }}>
-                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ marginRight: '6px' }}>
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.85.63-3.55 1.69-4.9l11.21 11.21C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.41 0 8 3.59 8 8 0 1.85-.63 3.55-1.69 4.9z"></path>
-                 </svg>
-                 {msg.text}
+                 <Ban size={16} color="currentColor" style={{ marginRight: '6px', flexShrink: 0 }} />
+                 <span>{msg.text}</span>
                </div>
             ) : renderTextWithLinks(msg.text)}
           </div>
         ) : !msg.file ? (
           <div className="wa-bubble-text" style={{ fontStyle: 'italic', color: 'var(--wa-text-secondary)', fontSize: '13px' }}>
-            <div className="wa-msg-italic-box" style={{ padding: 0 }}>
-               <svg viewBox="0 0 24 24" width="18" height="18" style={{ marginTop: '2px' }}>
-                  <path d="M12.003,3C6.48,3,2,7.48,2,13.003C2,18.525,6.48,23,12.003,23S22.005,18.525,22.005,13.003 C22.005,7.48,17.525,3,12.003,3z M18.368,17.662l-1.414,1.414l-4.95-4.95l-4.95,4.95l-1.414-1.414l4.95-4.95l-4.95-4.95l1.414-1.414 l4.95,4.95l4.95-4.95l1.414,1.414l-4.95,4.95L18.368,17.662z" />
-               </svg>
-               <span style={{ marginTop: '2px' }}>Message or media unsupported</span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+               <ImageOff size={16} color="currentColor" style={{ marginRight: '6px', flexShrink: 0 }} />
+               <span>Message or media unsupported</span>
             </div>
           </div>
         ) : null}
@@ -401,9 +390,7 @@ export default function MessageBubble({ msg, pov, showTail, onImageClick, isGrou
           {msg.time}
           {isOut && (
             <span className="wa-meta-check">
-              <svg viewBox="0 0 16 15" width="16" height="15" fill={isSticker ? "#8696a0" : "#53bdeb"}>
-                 <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path>
-              </svg>
+              <CheckCheck size={16} color={isSticker ? "#8696a0" : "#53bdeb"} />
             </span>
           )}
         </div>

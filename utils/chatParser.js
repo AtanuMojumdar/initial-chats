@@ -1,14 +1,18 @@
-import fs from 'fs';
-import path from 'path';
+// Server-side parsing of the chat file from Google Drive
+import driveMap from '../driveMap.json';
 
-export function parseChatFile() {
-  const filePath = path.join(process.cwd(), '../WhatsApp Chat with Atanu/WhatsApp Chat with Atanu.txt');
+export async function parseChatFile() {
+  const fileId = driveMap['WhatsApp Chat with Atanu.txt'];
+  if (!fileId) return [];
+
+  const url = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
+  const response = await fetch(url, { next: { revalidate: 3600 } });
   
-  if (!fs.existsSync(filePath)) {
+  if (!response.ok) {
     return [];
   }
   
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const content = await response.text();
   const lines = content.split('\n');
   const messages = [];
   

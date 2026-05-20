@@ -1,31 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Lightbox = ({ media, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(media?.initialIndex || 0);
-
-  useEffect(() => {
-    setCurrentIndex(media?.initialIndex || 0);
-  }, [media]);
+  const listLen = media?.list?.length || 0;
 
   const goPrev = () => {
-    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+    setCurrentIndex(i => (i > 0 ? i - 1 : i));
   };
 
   const goNext = () => {
-    if (currentIndex < media.list.length - 1) setCurrentIndex(currentIndex + 1);
+    setCurrentIndex(i => (i < listLen - 1 ? i + 1 : i));
   };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft') setCurrentIndex(i => (i > 0 ? i - 1 : i));
+      if (e.key === 'ArrowRight') setCurrentIndex(i => (i < listLen - 1 ? i + 1 : i));
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, currentIndex, media]);
+  }, [onClose, listLen]);
 
   if (!media || !media.list || media.list.length === 0) return null;
 
@@ -65,15 +63,13 @@ const Lightbox = ({ media, onClose }) => {
           </div>
         </div>
         <div className="wa-lightbox-close" onClick={onClose}>
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="M19.1,4.9L19.1,4.9c-0.3-0.3-0.6-0.3-0.9,0L12,11.1L5.8,4.9c-0.3-0.3-0.6-0.3-0.9,0l0,0c-0.3,0.3-0.3,0.6,0,0.9L11.1,12 l-6.2,6.2c-0.3,0.3-0.3,0.6,0,0.9l0,0c0.3,0.3,0.6,0.3,0.9,0L12,12.9l6.2,6.2c0.3,0.3,0.6,0.3,0.9,0l0,0c0.3-0.3,0.3-0.6,0-0.9 L12.9,12l6.2-6.2C19.4,5.5,19.4,5.2,19.1,4.9z"></path>
-          </svg>
+          <X size={24} color="currentColor" />
         </div>
       </div>
       
       {currentIndex > 0 && (
         <div className="wa-lightbox-nav prev" onClick={(e) => { e.stopPropagation(); goPrev(); }}>
-           <svg viewBox="0 0 24 24" width="36" height="36"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+           <ChevronLeft size={36} color="currentColor" />
         </div>
       )}
 
@@ -87,7 +83,7 @@ const Lightbox = ({ media, onClose }) => {
 
       {currentIndex < media.list.length - 1 && (
         <div className="wa-lightbox-nav next" onClick={(e) => { e.stopPropagation(); goNext(); }}>
-           <svg viewBox="0 0 24 24" width="36" height="36"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+           <ChevronRight size={36} color="currentColor" />
         </div>
       )}
     </div>
