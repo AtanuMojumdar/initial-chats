@@ -129,7 +129,6 @@ export default function LoginPage() {
           </form>
 
           <div className={styles.footer}>
-            <ShieldAlert size={14} />
             <span>Protected Area • End-to-End Encrypted Archive</span>
           </div>
         </div>
